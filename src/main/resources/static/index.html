@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velmart Product Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        form input, form button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border: 1px solid #ccc;
+            white-space: pre-wrap; /* Makes sure long JSON responses are wrapped */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Velmart Product Management</h1>
+
+    <!-- Create Product Form -->
+    <form id="createForm">
+        <h3>Create Product</h3>
+        <input type="text" id="createName" placeholder="Product Name" required />
+        <input type="text" id="createDescription" placeholder="Description" required />
+        <input type="number" id="createCost" placeholder="Cost" required />
+        <input type="number" id="createQuantity" placeholder="Quantity" required />
+        <button type="submit">Create Product</button>
+    </form>
+
+    <!-- Get All Products -->
+    <button id="getAllBtn">Get All Products</button>
+    <div id="allProducts" class="result"></div>
+
+    <!-- Get Product By Name -->
+    <form id="getByNameForm">
+        <h3>Get Product By Name</h3>
+        <input type="text" id="getName" placeholder="Product Name" required />
+        <button type="submit">Get Product</button>
+    </form>
+    <div id="productByName" class="result"></div>
+
+<!--    &lt;!&ndash; Get Delete By Name &ndash;&gt;-->
+<!--    <form id="deleteByNameForm">-->
+<!--        <h3>DELETE Product By Name</h3>-->
+<!--        <input type="text" id="deleteName" placeholder="Product Name" required />-->
+<!--        <button type="submit">Delete Product</button>-->
+<!--    </form>-->
+<!--    <div id="deleteByName" class="result"></div>-->
+
+    <!-- Compare Cost -->
+    <form id="compareCostForm">
+        <h3>Compare Product Cost</h3>
+        <input type="text" id="compareName" placeholder="Product Name" required />
+        <input type="number" id="compareCost" placeholder="New Cost" required />
+        <button type="submit">Compare Cost</button>
+    </form>
+    <div id="costComparison" class="result"></div>
+</div>
+
+<script>
+    const baseUrl = "http://localhost:8080/velmart";
+
+// Create Product
+document.getElementById("createForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("createName").value;
+    const description = document.getElementById("createDescription").value;
+    const cost = document.getElementById("createCost").value;
+    const quantity = document.getElementById("createQuantity").value;
+
+    try {
+        const response = await fetch(`${baseUrl}/create`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, description, cost, quantity }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById("allProducts").innerHTML = `Product Created: ${JSON.stringify(data, null, 2)}`;
+        } else {
+            document.getElementById("allProducts").innerHTML = "Failed to create product!";
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        document.getElementById("allProducts").innerHTML = "An error occurred while creating the product.";
+    }
+});
+
+
+    // Get All Products
+    document.getElementById("getAllBtn").addEventListener("click", async () => {
+        try {
+            const response = await fetch(`${baseUrl}/`);
+            const data = await response.json();
+            const resultDiv = document.getElementById("allProducts");
+            resultDiv.innerHTML = JSON.stringify(data, null, 2);
+        } catch (error) {
+            document.getElementById("allProducts").innerHTML = "Error fetching all products.";
+        }
+    });
+
+    // Get Product By Name
+    document.getElementById("getByNameForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("getName").value;
+
+        try {
+            const response = await fetch(`${baseUrl}/by-name/${name}`);
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById("productByName").innerHTML = JSON.stringify(data, null, 2);
+            } else {
+                document.getElementById("productByName").innerHTML = "Product not found!";
+            }
+        } catch (error) {
+            document.getElementById("productByName").innerHTML = "Error fetching product.";
+        }
+    });
+
+
+
+
+    // Compare Product Cost
+    document.getElementById("compareCostForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("compareName").value;
+        const cost = document.getElementById("compareCost").value;
+
+        try {
+            const response = await fetch(`${baseUrl}/compare-cost`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, costs: cost }),
+            });
+
+            const message = await response.text();
+            document.getElementById("costComparison").innerHTML = message;
+        } catch (error) {
+            document.getElementById("costComparison").innerHTML = "Error comparing cost.";
+        }
+    });
+</script>
+</body>
+</html>
